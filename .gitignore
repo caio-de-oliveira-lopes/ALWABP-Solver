@@ -1,0 +1,14 @@
+*.v2
+*.vsidx
+*.suo
+*.bin
+*.json
+*.dll
+*.exe
+*.pdb
+*.props
+*.targets
+net6.0
+*.cache
+*.wsuo
+*.sqlite
