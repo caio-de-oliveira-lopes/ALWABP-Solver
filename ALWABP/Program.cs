@@ -1,5 +1,5 @@
-﻿using ALWABP.Domain;
-using System.Numerics;
+﻿using ALWABP.DataManagers;
+using ALWABP.Domain.ALWABP;
 
 namespace ALWABP
 {
@@ -35,7 +35,18 @@ namespace ALWABP
             if (!Directory.Exists(outputFilePath))
                 Directory.CreateDirectory(outputFilePath);
 
-            ALWABPInstance instance = new(inputFileName, inputFileDirectory, outputFilePath);
+            ALWABPInstance? instance = Reader.ReadInputFile<ALWABPInstance>(new(inputFileName, inputFileDirectory, outputFilePath));
+
+            if (instance is null)
+            {
+                Console.WriteLine($"Input Reading Error!");
+                return;
+            }
+
+            GRASP grasp = new();
+            grasp.Construct(instance);
+
+            Writer.WriteOutputFile(instance);
         }
     }
 }
