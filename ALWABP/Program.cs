@@ -44,7 +44,16 @@ namespace ALWABP
             }
 
             GRASP grasp = new();
-            grasp.Construct(instance);
+            ALWABPSolution solution;
+
+            // PREPARE FOR REVERSE PRECEDENCE GRAPH
+            foreach (TaskPriorityRule.RuleCriteria ruleCriteria in Enum.GetValues<TaskPriorityRule.RuleCriteria>()) 
+            {
+                foreach (var secondayCriteria in TaskPriorityRule.GetSecondaryCriterias(ruleCriteria))
+                {
+                    solution = grasp.Construct(instance, ruleCriteria, secondayCriteria);
+                }
+            }
 
             Writer.WriteOutputFile(instance);
         }

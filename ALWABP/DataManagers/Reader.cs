@@ -67,15 +67,18 @@ namespace ALWABP.DataManagers
                 int uTask = -1, vTask = -1;
                 do
                 {
-                    line = sr.ReadLine();
-                    if (line is null) return null;
-
-                    splitedLines = line.Split(" ");
                     uTask = int.Parse(splitedLines.First());
                     vTask = int.Parse(splitedLines.Last());
 
                     if (uTask != -1 && vTask != -1)
+                    {
                         precedenceGraph.Add((uTask - 1, vTask - 1));
+
+                        line = sr.ReadLine();
+                        if (line is null) return null;
+
+                        splitedLines = line.Split(" ");
+                    }
                 } while (uTask != -1 && vTask != -1);
                 sr.Close();
             }

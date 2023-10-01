@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static ALWABP.Domain.ALWABP.TaskPriorityRule;
 
 namespace ALWABP.Domain.ALWABP
 {
@@ -17,7 +18,7 @@ namespace ALWABP.Domain.ALWABP
 
         }
 
-        public void Construct(ALWABPInstance instance)
+        public ALWABPSolution Construct(ALWABPInstance instance, RuleCriteria ruleCriteria, RuleSecondaryCriteria ruleSecondaryCriteria = RuleSecondaryCriteria.None)
         {
             CurrentInstance = instance;
             ALWABPSolution? solution = null;
@@ -26,25 +27,39 @@ namespace ALWABP.Domain.ALWABP
             while (solution is null)
             {
                 maxCycleTime++;
-                solution = StationOrientedAssignmentProcedureALWABP1(maxCycleTime);
+                solution = StationOrientedAssignmentProcedureALWABP1(maxCycleTime, ruleCriteria, ruleSecondaryCriteria);
             }
+
+            return solution;
         }
 
-        private ALWABPSolution? StationOrientedAssignmentProcedureALWABP1(int maxCycleTime)
+        private ALWABPSolution? StationOrientedAssignmentProcedureALWABP1(int maxCycleTime, RuleCriteria ruleCriteria, RuleSecondaryCriteria ruleSecondaryCriteria = RuleSecondaryCriteria.None)
         {
             if (CurrentInstance == null)
                 return null;
 
+            Dictionary<int, int> workstationTimes = new();
+            Dictionary<int, List<int>> workstationWorkers = new();
+            Dictionary<int, List<int>> workerTasks = new();
+
             int currentWorkstation = 0;
-            int currentWorkstationTime = 0;
-            var unassignedWorkers = Enumerable.Range(0, CurrentInstance.Workers).ToArray();
-            var unassignedTasks = Enumerable.Range(0, CurrentInstance.Tasks).ToArray();
 
-            Dictionary<int, int[]> WorkerTaskRelationDict = new();
+            workstationTimes.Add(currentWorkstation, 0);
+            workstationWorkers.Add(currentWorkstation, new List<int>());
 
-            foreach(var worker in unassignedWorkers)
+            var unassignedWorkers = CurrentInstance.GetWorkersList();
+            var unassignedTasks = CurrentInstance.GetTasksList();
+
+            // TODO: Apply worker ordering
+            var orderedUnassignedWorkers = unassignedWorkers;
+
+            foreach (var worker in orderedUnassignedWorkers)
             {
+                workerTasks.Add(worker, new List<int>());
+                workstationWorkers[currentWorkstation].Add(worker);
 
+                var availableTasks = CurrentInstance.GetAssignableTasks(worker, unassignedTasks);
+                var orderedUnassignedTasks = Apply(CurrentInstance, availableTasks, ruleCriteria, ruleSecondaryCriteria, worker);
             }
 
             return new ALWABPSolution();
