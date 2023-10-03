@@ -1,12 +1,4 @@
-﻿using ALWABP.Domain.Base;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static ALWABP.Domain.ALWABP.TaskPriorityRule;
-
-namespace ALWABP.Domain.ALWABP
+﻿namespace ALWABP.Domain.ALWABP
 {
     public static class TaskPriorityRule
     {

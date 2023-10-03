@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ALWABP.Domain.ALWABP;
+﻿using ALWABP.Domain.ALWABP;
 using ALWABP.Domain.Base;
 using ALWABP.Utils;
 
@@ -28,7 +23,7 @@ namespace ALWABP.DataManagers
             List<(int, int)> precedenceGraph = new();
             try
             {
-                StreamReader sr = new StreamReader(fileManager.GetFullInputPath());
+                StreamReader sr = new(fileManager.GetFullInputPath());
 
                 line = sr.ReadLine();
 
@@ -41,7 +36,7 @@ namespace ALWABP.DataManagers
                 line = sr.ReadLine();
                 if (line is null) return null;
 
-                var splitedLines = line.Split(" ");
+                string[] splitedLines = line.Split(" ");
                 numberOfWorkers = splitedLines.Length;
 
                 matrix = new int?[numberOfTasks, numberOfWorkers];
@@ -50,8 +45,8 @@ namespace ALWABP.DataManagers
                 do
                 {
                     int worker = 0;
-                    var values = Array.ConvertAll(splitedLines, i => Util.ToNullableInt(i));
-                    foreach (var v in values)
+                    int?[] values = Array.ConvertAll(splitedLines, i => Util.ToNullableInt(i));
+                    foreach (int? v in values)
                     {
                         matrix[task, worker] = v;
                         worker++;

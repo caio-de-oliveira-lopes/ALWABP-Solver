@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ALWABP.Domain.Base;
+﻿using ALWABP.Domain.Base;
 
 namespace ALWABP.Domain.ALWABP
 {
@@ -12,7 +7,7 @@ namespace ALWABP.Domain.ALWABP
         public int Workers { get; private set; }
         public int?[,] Matrix { get; private set; }
         public Dictionary<int, int> FasterWorkerForTasks { get; private set; }
-        private Dictionary<(int, int), int> WorkersRanks { get; set; } 
+        private Dictionary<(int, int), int> WorkersRanks { get; set; }
 
         public ALWABPInstance(FileManager fileManager, int workers, int tasks, int?[,] matrix, (int, int)[] precedenceGraph)
             : base(InstanceType.ALWABP, fileManager, tasks, precedenceGraph)
@@ -29,14 +24,20 @@ namespace ALWABP.Domain.ALWABP
         private void ComputeWorkersRanks()
         {
             WorkersRanks.Clear();
-            foreach (var task in GetTasksList())
+            foreach (int task in GetTasksList())
             {
-                var originalTaskOrder = GetTaskTimes(task);
-                var ordered = originalTaskOrder.OrderBy(x => x).ToList();
+                List<int?> originalTaskOrder = GetTaskTimes(task);
+                List<(int?, int)> labeledOriginalTaskOrder = new();
+                for (int i = 0; i < originalTaskOrder.Count; i++)
+                {
+                    labeledOriginalTaskOrder.Add((originalTaskOrder[i], i));
+                }
+
+                List<(int?, int)> ordered = labeledOriginalTaskOrder.OrderBy(x => x.Item1).ToList();
 
                 for (int i = 0; i < ordered.Count; i++)
                 {
-                    var worker = originalTaskOrder.IndexOf(ordered[i]);
+                    int worker = ordered[i].Item2;
                     WorkersRanks.Add((task, worker), i);
                 }
             }
@@ -45,7 +46,7 @@ namespace ALWABP.Domain.ALWABP
         private void ComputeFasterWorkerForTasks()
         {
             FasterWorkerForTasks.Clear();
-            foreach(var task in GetTasksList())
+            foreach (int task in GetTasksList())
                 FasterWorkerForTasks.Add(task, GetTaskTimes(task).IndexOf(GetMinTaskTime(task)));
         }
 
@@ -54,7 +55,7 @@ namespace ALWABP.Domain.ALWABP
             return Enumerable.Range(0, Workers).ToList();
         }
 
-        private List<int?> GetTaskTimes(int task) 
+        private List<int?> GetTaskTimes(int task)
         {
             List<int?> result = new();
             for (int w = 0; w < Workers; w++)
@@ -125,6 +126,11 @@ namespace ALWABP.Domain.ALWABP
         public int? GetRank(int task, int worker)
         {
             return WorkersRanks.ContainsKey((task, worker)) ? WorkersRanks[(task, worker)] : null;
+        }
+
+        public int? GetTaskTime(int task, int worker)
+        {
+            return Matrix[task, worker];
         }
     }
 }

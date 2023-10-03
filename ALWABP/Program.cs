@@ -1,11 +1,12 @@
 ﻿using ALWABP.DataManagers;
 using ALWABP.Domain.ALWABP;
+using ALWABP.Domain.Base;
 
 namespace ALWABP
 {
     public static class Program
     {
-        private static readonly string Warning = "\nPlease Follow The Structure => '<InputFileName> <InputFilePath> <OutputFilePath(OPTIONAL)>'"; 
+        private static readonly string Warning = "\nPlease Follow The Structure => '<InputFileName> <InputFilePath> <OutputFilePath(OPTIONAL)>'";
         static void Main(string[] args)
         {
             string inputFileName;
@@ -46,13 +47,19 @@ namespace ALWABP
             GRASP grasp = new();
             ALWABPSolution solution;
 
-            // PREPARE FOR REVERSE PRECEDENCE GRAPH
-            foreach (TaskPriorityRule.RuleCriteria ruleCriteria in Enum.GetValues<TaskPriorityRule.RuleCriteria>()) 
+            foreach (Instance.GraphDirection graphDirection in Enum.GetValues<Instance.GraphDirection>())
             {
-                foreach (var secondayCriteria in TaskPriorityRule.GetSecondaryCriterias(ruleCriteria))
+                instance.ComputeData(graphDirection);
+                foreach (TaskPriorityRule.RuleCriteria ruleCriteria in Enum.GetValues<TaskPriorityRule.RuleCriteria>())
                 {
-                    solution = grasp.Construct(instance, ruleCriteria, secondayCriteria);
+                    foreach (TaskPriorityRule.RuleSecondaryCriteria secondayCriteria in TaskPriorityRule.GetSecondaryCriterias(ruleCriteria))
+                    {
+                        solution = grasp.Construct(instance, ruleCriteria, secondayCriteria);
+                        break;
+                    }
+                    break;
                 }
+                break;
             }
 
             Writer.WriteOutputFile(instance);

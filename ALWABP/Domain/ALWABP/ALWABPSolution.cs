@@ -1,18 +1,21 @@
 ﻿using ALWABP.Domain.Base;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ALWABP.Domain.ALWABP
 {
     public class ALWABPSolution : Solution
     {
-        public ALWABPSolution() 
-            : base() 
-        { 
+        public Dictionary<int, int> WorkstationsCicleTimes { get; private set; }
+        public Dictionary<int, int> AssignedWorkers { get; private set; }
+        public Dictionary<int, List<int>> WorkerTasks { get; private set; }
+        public int MaxCycleTime { get; private set; }
 
+        public ALWABPSolution(Dictionary<int, int> workstationsCicleTimes, Dictionary<int, int> assignedWorkers, Dictionary<int, List<int>> workerTasks)
+            : base()
+        {
+            WorkstationsCicleTimes = workstationsCicleTimes;
+            AssignedWorkers = assignedWorkers;
+            WorkerTasks = workerTasks;
+            MaxCycleTime = workstationsCicleTimes.Values.Max();
         }
     }
 }
