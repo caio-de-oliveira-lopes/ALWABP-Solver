@@ -87,7 +87,7 @@
                 return unassignedTasks.OrderBy(x => instance.GetDifferenceToBestWorker(x, worker.Value)).ToArray();
 
             // Rule 13
-            if (ruleCriteria == RuleCriteria.MinD)
+            if (ruleCriteria == RuleCriteria.MinR)
                 return unassignedTasks.OrderBy(x => instance.GetRatioToBestWorker(x, worker.Value)).ToArray();
 
             // Rule 14

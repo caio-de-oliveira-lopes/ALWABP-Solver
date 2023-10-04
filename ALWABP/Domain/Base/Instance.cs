@@ -9,7 +9,6 @@
         public Dictionary<GraphDirection, (int, int)[]> PrecedenceGraph { get; private set; }
         public Dictionary<int, List<int>> ImmediateFollowers { get; private set; }
         public Dictionary<int, List<int>> Followers { get; private set; }
-        public Solution? Solution { get; protected set; }
 
         public Instance(InstanceType type, FileManager manager, int tasks, (int, int)[] precedenceGraph)
             : base(InstanceCounter, $"{manager.InputFileName}_({InstanceCounter})")
@@ -48,11 +47,6 @@
         public List<int> GetTasksList()
         {
             return Enumerable.Range(0, Tasks).ToList();
-        }
-
-        public bool HasSolution()
-        {
-            return Solution != null;
         }
 
         private void ComputeImmediateFollowers(GraphDirection graphDirection)

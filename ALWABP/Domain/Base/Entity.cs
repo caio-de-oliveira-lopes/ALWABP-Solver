@@ -2,8 +2,8 @@
 {
     public abstract class Entity
     {
-        private int Id { get; set; }
-        private string Name { get; set; }
+        public int Id { get; private set; }
+        public string Name { get; private set; }
 
         public Entity(int id, string name = "")
         {

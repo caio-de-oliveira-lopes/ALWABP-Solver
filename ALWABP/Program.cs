@@ -52,18 +52,22 @@ namespace ALWABP
                 instance.ComputeData(graphDirection);
                 foreach (WorkerPriorityRule.RuleCriteria workerRuleCriteria in Enum.GetValues<WorkerPriorityRule.RuleCriteria>())
                 {
+                    if (workerRuleCriteria == WorkerPriorityRule.RuleCriteria.MinBWA) continue;
+
                     foreach (TaskPriorityRule.RuleCriteria ruleCriteria in Enum.GetValues<TaskPriorityRule.RuleCriteria>())
                     {
                         foreach (TaskPriorityRule.RuleSecondaryCriteria secondayCriteria in TaskPriorityRule.GetSecondaryCriterias(ruleCriteria))
                         {
-                            solution = grasp.Construct(instance, workerRuleCriteria, ruleCriteria, secondayCriteria);
-                            break;
+                            solution = grasp.Construct(instance, graphDirection, workerRuleCriteria, ruleCriteria, secondayCriteria);
+                            if (solution.IsFeasible())
+                                instance.AddSolution(solution);
+                            //break;
                         }
-                        break;
+                        //break;
                     }
-                    break;
+                    //break;
                 }
-                break;
+                //break;
             }
 
             Writer.WriteOutputFile(instance);

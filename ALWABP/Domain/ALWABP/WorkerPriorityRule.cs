@@ -22,7 +22,7 @@
 
             // Rule 3
             if (ruleCriteria == RuleCriteria.MinRLB)
-                return unassignedWorkers.OrderBy(x => instance.GetMinRLB(x, unassignedWorkers, unassignedTasks)).FirstOrDefault();
+                return unassignedWorkers.OrderBy(x => instance.GetMinRLB(x, unassignedWorkers.ToList(), unassignedTasks)).FirstOrDefault();
 
             return null;
         }

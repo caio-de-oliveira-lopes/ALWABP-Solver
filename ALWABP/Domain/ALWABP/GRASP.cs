@@ -12,23 +12,29 @@ namespace ALWABP.Domain.ALWABP
 
         }
 
-        public ALWABPSolution Construct(ALWABPInstance instance, WorkerPriorityRule.RuleCriteria workerRuleCriteria, TaskPriorityRule.RuleCriteria ruleCriteria, 
+        public ALWABPSolution Construct(ALWABPInstance instance, ALWABPInstance.GraphDirection graphDirection, WorkerPriorityRule.RuleCriteria workerRuleCriteria, TaskPriorityRule.RuleCriteria ruleCriteria, 
             TaskPriorityRule.RuleSecondaryCriteria ruleSecondaryCriteria = TaskPriorityRule.RuleSecondaryCriteria.None)
         {
             CurrentInstance = instance;
             ALWABPSolution? solution = null;
-            int maxCycleTime = 250; // TODO: Define good start value for maxCycleTime
+            int maxCycleTime = 1;
 
+            System.Diagnostics.Stopwatch watch = new();
+            watch.Start();
             while (solution is null)
             {
-                solution = StationOrientedAssignmentProcedureALWABP1(maxCycleTime, workerRuleCriteria, ruleCriteria, ruleSecondaryCriteria);
+                solution = StationOrientedAssignmentProcedureALWABP1(maxCycleTime, graphDirection, workerRuleCriteria, ruleCriteria, ruleSecondaryCriteria);
                 maxCycleTime++;
             }
+            watch.Stop();
+            solution.SetExecutionTimeMs(watch.ElapsedMilliseconds);
+
+            Console.Write($"Found solution with Id: {solution.Id}\n\n");
 
             return solution;
         }
 
-        private ALWABPSolution? StationOrientedAssignmentProcedureALWABP1(int maxCycleTime, 
+        private ALWABPSolution? StationOrientedAssignmentProcedureALWABP1(int maxCycleTime, ALWABPInstance.GraphDirection graphDirection, 
             WorkerPriorityRule.RuleCriteria workerRuleCriteria, TaskPriorityRule.RuleCriteria ruleCriteria, 
             TaskPriorityRule.RuleSecondaryCriteria ruleSecondaryCriteria = TaskPriorityRule.RuleSecondaryCriteria.None)
         {
@@ -41,14 +47,19 @@ namespace ALWABP.Domain.ALWABP
 
             int currentWorkstation = 0;
 
-            workstationTimes.Add(currentWorkstation, 0);
+            if (!workstationTimes.ContainsKey(currentWorkstation))
+                workstationTimes.Add(currentWorkstation, 0);
 
             List<int> unassignedWorkers = CurrentInstance.GetWorkersList();
             List<int> unassignedTasks = CurrentInstance.GetTasksList();
 
             while (unassignedWorkers.Any() && unassignedTasks.Any())
             {
-                int? worker = WorkerPriorityRule.GetNextWorker(CurrentInstance, unassignedTasks, unassignedWorkers, workerRuleCriteria);
+                int? worker;
+                if (unassignedWorkers.Count > 1)
+                    worker = WorkerPriorityRule.GetNextWorker(CurrentInstance, unassignedTasks, unassignedWorkers, workerRuleCriteria);
+                else
+                    worker = unassignedWorkers.FirstOrDefault();
 
                 if (worker == null) break;
 
@@ -85,10 +96,20 @@ namespace ALWABP.Domain.ALWABP
                         workstationTimes.Add(currentWorkstation, 0);
                     }
                 }
+                else
+                    break;
             }
 
-            if (!unassignedTasks.Any()) // Check workers assignment too?
-                return new ALWABPSolution(workstationTimes, workstationWorker, workerTasks);
+            if (!unassignedTasks.Any())
+            {
+                var solution = new ALWABPSolution(workstationTimes, workstationWorker, workerTasks, 
+                    graphDirection, workerRuleCriteria, ruleCriteria, ruleSecondaryCriteria);
+
+                if (unassignedWorkers.Any())
+                    solution.SetInfeasible();
+
+                return solution;
+            }
             else
                 return null;
         }

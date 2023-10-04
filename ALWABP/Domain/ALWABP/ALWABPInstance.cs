@@ -8,14 +8,16 @@ namespace ALWABP.Domain.ALWABP
         public int?[,] Matrix { get; private set; }
         public Dictionary<int, int> FasterWorkerForTasks { get; private set; }
         private Dictionary<(int, int), int> WorkersRanks { get; set; }
+        public Dictionary<(GraphDirection, WorkerPriorityRule.RuleCriteria, TaskPriorityRule.RuleCriteria, TaskPriorityRule.RuleSecondaryCriteria), ALWABPSolution> Solutions { get; protected set; }
 
         public ALWABPInstance(FileManager fileManager, int workers, int tasks, int?[,] matrix, (int, int)[] precedenceGraph)
             : base(InstanceType.ALWABP, fileManager, tasks, precedenceGraph)
         {
             Workers = workers;
             Matrix = matrix;
-            FasterWorkerForTasks = new Dictionary<int, int>();
-            WorkersRanks = new Dictionary<(int, int), int>();
+            FasterWorkerForTasks = new();
+            WorkersRanks = new();
+            Solutions = new();
 
             ComputeFasterWorkerForTasks();
             ComputeWorkersRanks();
@@ -109,13 +111,15 @@ namespace ALWABP.Domain.ALWABP
         public int? GetDifferenceToBestWorker(int task, int worker)
         {
             int? workerTime = Matrix[task, worker];
-            return workerTime.HasValue ? workerTime.Value - FasterWorkerForTasks[task] : null;
+            int fasterWorker = FasterWorkerForTasks[task];
+            return workerTime.HasValue ? workerTime.Value - Matrix[task, fasterWorker] : null;
         }
 
         public int? GetRatioToBestWorker(int task, int worker)
         {
             int? workerTime = Matrix[task, worker];
-            return workerTime.HasValue ? workerTime.Value / FasterWorkerForTasks[task] : null;
+            int fasterWorker = FasterWorkerForTasks[task];
+            return workerTime.HasValue ? workerTime.Value / Matrix[task, fasterWorker] : null;
         }
 
         public int? GetNumberOfFollowersPerTime(int task, int worker)
@@ -181,6 +185,11 @@ namespace ALWABP.Domain.ALWABP
             }
 
             return ammountOfTime / unassignedWorkers.Count;
+        }
+
+        public void AddSolution(ALWABPSolution solution)
+        {
+            Solutions.TryAdd((solution.GraphDirection, solution.WorkerRuleCriteria, solution.TaskRuleCriteria, solution.TaskRuleSecondaryCriteria), solution);
         }
     }
 }
