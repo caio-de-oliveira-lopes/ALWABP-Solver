@@ -69,9 +69,16 @@ namespace ALWABP.Domain.ALWABP
             return taskList.Where(t => Matrix[t, worker].HasValue).ToList();
         }
 
-        public int? GetMinTaskTime(int task)
+        public int? GetMinTaskTime(int task, int[]? considerWorkers = null)
         {
-            return GetTaskTimes(task).Min();
+            var taskTimes = GetTaskTimes(task);
+            if (considerWorkers != null)
+            {
+                if (!considerWorkers.Any()) return null;
+
+                taskTimes = taskTimes.Where(x => considerWorkers.Contains(taskTimes.IndexOf(x))).ToList();
+            }
+            return taskTimes.Min();
         }
 
         public int? GetMaxTaskTime(int task)
@@ -131,6 +138,49 @@ namespace ALWABP.Domain.ALWABP
         public int? GetTaskTime(int task, int worker)
         {
             return Matrix[task, worker];
+        }
+
+        public int GetMaxTasks(int worker, List<int>? tasks = null)
+        {
+            int count = 0;
+            tasks ??= GetTasksList();
+            for (int i = 0; i < tasks.Count; i++)
+            {
+                if (Matrix[tasks[i], worker].HasValue)
+                    count++;
+            }
+            return count;
+        }
+
+        public int GetMinBWA(int worker, List<int> unassignedWorkers, List<int>? unassignedTasks = null)
+        {
+            return 0;
+            Dictionary<int, int> workerTimeMap = new();
+            foreach (var uw in unassignedWorkers)
+            {
+                workerTimeMap.Add(uw, 0);
+            }
+            foreach (var task in unassignedTasks)
+            {
+
+            }
+        }
+
+        public int GetMinRLB(int worker, List<int> unassignedWorkers, List<int>? unassignedTasks = null)
+        {
+            unassignedTasks ??= GetTasksList();
+            int[] tasks = GetAssignableTasks(worker, unassignedTasks).ToArray();
+            unassignedWorkers.Remove(worker);
+            int ammountOfTime = 0;
+
+            for (int i = 0; i < tasks.Length; i++)
+            {
+                int? taskTime = GetMinTaskTime(tasks[i], unassignedWorkers.ToArray());
+                if (taskTime.HasValue)
+                    ammountOfTime += taskTime.Value;
+            }
+
+            return ammountOfTime / unassignedWorkers.Count;
         }
     }
 }

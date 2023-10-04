@@ -50,11 +50,15 @@ namespace ALWABP
             foreach (Instance.GraphDirection graphDirection in Enum.GetValues<Instance.GraphDirection>())
             {
                 instance.ComputeData(graphDirection);
-                foreach (TaskPriorityRule.RuleCriteria ruleCriteria in Enum.GetValues<TaskPriorityRule.RuleCriteria>())
+                foreach (WorkerPriorityRule.RuleCriteria workerRuleCriteria in Enum.GetValues<WorkerPriorityRule.RuleCriteria>())
                 {
-                    foreach (TaskPriorityRule.RuleSecondaryCriteria secondayCriteria in TaskPriorityRule.GetSecondaryCriterias(ruleCriteria))
+                    foreach (TaskPriorityRule.RuleCriteria ruleCriteria in Enum.GetValues<TaskPriorityRule.RuleCriteria>())
                     {
-                        solution = grasp.Construct(instance, ruleCriteria, secondayCriteria);
+                        foreach (TaskPriorityRule.RuleSecondaryCriteria secondayCriteria in TaskPriorityRule.GetSecondaryCriterias(ruleCriteria))
+                        {
+                            solution = grasp.Construct(instance, workerRuleCriteria, ruleCriteria, secondayCriteria);
+                            break;
+                        }
                         break;
                     }
                     break;

@@ -1,5 +1,4 @@
 ﻿using ALWABP.Domain.Base;
-using static ALWABP.Domain.ALWABP.TaskPriorityRule;
 
 namespace ALWABP.Domain.ALWABP
 {
@@ -13,7 +12,8 @@ namespace ALWABP.Domain.ALWABP
 
         }
 
-        public ALWABPSolution Construct(ALWABPInstance instance, RuleCriteria ruleCriteria, RuleSecondaryCriteria ruleSecondaryCriteria = RuleSecondaryCriteria.None)
+        public ALWABPSolution Construct(ALWABPInstance instance, WorkerPriorityRule.RuleCriteria workerRuleCriteria, TaskPriorityRule.RuleCriteria ruleCriteria, 
+            TaskPriorityRule.RuleSecondaryCriteria ruleSecondaryCriteria = TaskPriorityRule.RuleSecondaryCriteria.None)
         {
             CurrentInstance = instance;
             ALWABPSolution? solution = null;
@@ -21,14 +21,16 @@ namespace ALWABP.Domain.ALWABP
 
             while (solution is null)
             {
-                solution = StationOrientedAssignmentProcedureALWABP1(maxCycleTime, ruleCriteria, ruleSecondaryCriteria);
+                solution = StationOrientedAssignmentProcedureALWABP1(maxCycleTime, workerRuleCriteria, ruleCriteria, ruleSecondaryCriteria);
                 maxCycleTime++;
             }
 
             return solution;
         }
 
-        private ALWABPSolution? StationOrientedAssignmentProcedureALWABP1(int maxCycleTime, RuleCriteria ruleCriteria, RuleSecondaryCriteria ruleSecondaryCriteria = RuleSecondaryCriteria.None)
+        private ALWABPSolution? StationOrientedAssignmentProcedureALWABP1(int maxCycleTime, 
+            WorkerPriorityRule.RuleCriteria workerRuleCriteria, TaskPriorityRule.RuleCriteria ruleCriteria, 
+            TaskPriorityRule.RuleSecondaryCriteria ruleSecondaryCriteria = TaskPriorityRule.RuleSecondaryCriteria.None)
         {
             if (CurrentInstance == null)
                 return null;
@@ -44,37 +46,38 @@ namespace ALWABP.Domain.ALWABP
             List<int> unassignedWorkers = CurrentInstance.GetWorkersList();
             List<int> unassignedTasks = CurrentInstance.GetTasksList();
 
-            // TODO: Apply worker ordering
-            List<int> orderedUnassignedWorkers = unassignedWorkers.ToList();
-
-            foreach (int worker in orderedUnassignedWorkers)
+            while (unassignedWorkers.Any() && unassignedTasks.Any())
             {
-                List<int> availableTasks = CurrentInstance.GetAssignableTasks(worker, unassignedTasks);
-                int[]? orderedUnassignedTasks = Apply(CurrentInstance, availableTasks, ruleCriteria, ruleSecondaryCriteria, worker);
+                int? worker = WorkerPriorityRule.GetNextWorker(CurrentInstance, unassignedTasks, unassignedWorkers, workerRuleCriteria);
+
+                if (worker == null) break;
+
+                List<int> availableTasks = CurrentInstance.GetAssignableTasks(worker.Value, unassignedTasks);
+                int[]? orderedUnassignedTasks = TaskPriorityRule.Apply(CurrentInstance, availableTasks, ruleCriteria, ruleSecondaryCriteria, worker);
 
                 if (orderedUnassignedTasks == null) continue;
 
-                workerTasks.Add(worker, new List<int>()); // Initialize the list of tasks to a worker
+                workerTasks.Add(worker.Value, new List<int>()); // Initialize the list of tasks to a worker
 
                 foreach (var task in orderedUnassignedTasks)
                 {
-                    var taskTime = CurrentInstance.GetTaskTime(task, worker);
+                    var taskTime = CurrentInstance.GetTaskTime(task, worker.Value);
 
                     if (taskTime == null) continue;
 
                     if (workstationTimes[currentWorkstation] + taskTime <= maxCycleTime)
                     {
-                        workerTasks[worker].Add(task); // Assign the task to a worker
+                        workerTasks[worker.Value].Add(task); // Assign the task to a worker
                         unassignedTasks.Remove(task); // Remove the task from the unassigned list
 
                         workstationTimes[currentWorkstation] += taskTime.Value; // Increase the workstation time
                     }
                 }
 
-                if (workerTasks[worker].Any())
+                if (workerTasks[worker.Value].Any())
                 {
-                    workstationWorker.Add(currentWorkstation, worker); // Assign the worker to the workstation
-                    unassignedWorkers.Remove(worker); // Remove the worker from the unassigned list
+                    workstationWorker.Add(currentWorkstation, worker.Value); // Assign the worker to the workstation
+                    unassignedWorkers.Remove(worker.Value); // Remove the worker from the unassigned list
 
                     if (unassignedTasks.Any() && unassignedWorkers.Any())
                     {
