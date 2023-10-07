@@ -5,7 +5,7 @@
         private static int InstanceCounter { get; set; } = 0;
         public int MaxCycleTime { get; private set; }
         public long ExecutionTimeMs { get; private set; }
-        private bool Feasible { get; set; }
+        public bool Feasible { get; private set; }
 
         public Solution(int maxCycleTime)
             : base(InstanceCounter, $"Sol_({InstanceCounter})")

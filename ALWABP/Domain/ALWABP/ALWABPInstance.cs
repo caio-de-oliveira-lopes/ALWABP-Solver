@@ -191,5 +191,31 @@ namespace ALWABP.Domain.ALWABP
         {
             Solutions.TryAdd((solution.GraphDirection, solution.WorkerRuleCriteria, solution.TaskRuleCriteria, solution.TaskRuleSecondaryCriteria), solution);
         }
+
+        public Dictionary<string, Dictionary<int, Dictionary<string, object?>>> OutputAsDictionary()
+        {
+            Dictionary<string, Dictionary<int, Dictionary<string, object?>>> result = new();
+
+            Dictionary<int, Dictionary<string, object?>> dict = new();
+            foreach (var solution in Solutions.Values)
+            {
+                Dictionary<string, object?> data = new()
+                {
+                    { nameof(solution.MaxCycleTime), solution.MaxCycleTime },
+                    { nameof(solution.ExecutionTimeMs), solution.ExecutionTimeMs },
+                    { nameof(solution.Feasible), solution.Feasible },
+                    { nameof(solution.WorkstationsCicleTimes), solution.WorkstationsCicleTimes },
+                    { nameof(solution.AssignedWorkers), solution.AssignedWorkers },
+                    { nameof(solution.GraphDirection), solution.GraphDirection.ToString() },
+                    { nameof(solution.WorkerRuleCriteria), solution.WorkerRuleCriteria.ToString() },
+                    { nameof(solution.TaskRuleCriteria), solution.TaskRuleCriteria.ToString() },
+                    { nameof(solution.TaskRuleSecondaryCriteria), solution.TaskRuleSecondaryCriteria.ToString() }
+                };
+                dict.Add(solution.Id, data);
+            }
+            result.Add(Name, dict);
+            
+            return result;
+        }
     }
 }

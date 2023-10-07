@@ -1,5 +1,7 @@
 ﻿using ALWABP.Domain.ALWABP;
 using ALWABP.Domain.Base;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ALWABP.DataManagers
 {
@@ -15,7 +17,12 @@ namespace ALWABP.DataManagers
         {
             if (instance == null) return;
 
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            var json = JsonSerializer.Serialize(instance.OutputAsDictionary(), options);
+            //var solutions = instance.Solutions.Values.Select(x => x.Id).ToList();
 
+            File.WriteAllText(instance.Manager.GetFullOutputPath(), json);
+            Console.WriteLine($"\nFinished Writing Output For Instance {instance.Name}.\n");
         }
     }
 }
