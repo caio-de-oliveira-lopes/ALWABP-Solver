@@ -8,6 +8,7 @@ namespace ALWABP.Domain.ALWABP
         public int?[,] Matrix { get; private set; }
         public Dictionary<int, int> FasterWorkerForTasks { get; private set; }
         private Dictionary<(int, int), int> WorkersRanks { get; set; }
+        public ALWABPSolution? BestSolution { get; private set; }
         public Dictionary<(GraphDirection, WorkerPriorityRule.RuleCriteria, TaskPriorityRule.RuleCriteria, TaskPriorityRule.RuleSecondaryCriteria), ALWABPSolution> Solutions { get; protected set; }
 
         public ALWABPInstance(FileManager fileManager, int workers, int tasks, int?[,] matrix, (int, int)[] precedenceGraph)
@@ -156,18 +157,22 @@ namespace ALWABP.Domain.ALWABP
             return count;
         }
 
-        public int GetMinBWA(int worker, List<int> unassignedWorkers, List<int>? unassignedTasks = null)
+        public List<int> GetMinBWA(List<int> unassignedWorkers, List<int>? unassignedTasks = null)
         {
-            return 0;
+            unassignedTasks ??= GetTasksList();
             Dictionary<int, int> workerTimeMap = new();
+
             foreach (var uw in unassignedWorkers)
-            {
                 workerTimeMap.Add(uw, 0);
-            }
+
             foreach (var task in unassignedTasks)
             {
-
+                var fastestWorker = unassignedWorkers.MinBy(x => GetTaskTime(task, x));
+                int taskTime = GetTaskTime(task, fastestWorker) ?? int.MaxValue;
+                workerTimeMap[fastestWorker] += taskTime;
             }
+
+            return unassignedWorkers.OrderBy(x => workerTimeMap[x]).ToList();
         }
 
         public int GetMinRLB(int worker, List<int> unassignedWorkers, List<int>? unassignedTasks = null)
@@ -190,17 +195,45 @@ namespace ALWABP.Domain.ALWABP
         public void AddSolution(ALWABPSolution solution)
         {
             Solutions.TryAdd((solution.GraphDirection, solution.WorkerRuleCriteria, solution.TaskRuleCriteria, solution.TaskRuleSecondaryCriteria), solution);
+
+            if (solution.IsFeasible())
+            {
+                if (BestSolution == null || BestSolution.MaxCycleTime > solution.MaxCycleTime ||
+                    (BestSolution.MaxCycleTime == solution.MaxCycleTime && solution.GetIdleTime() < BestSolution.GetIdleTime()))
+                    BestSolution = solution;
+            }
         }
 
-        public Dictionary<string, Dictionary<int, Dictionary<string, object?>>> OutputAsDictionary()
+        public Dictionary<string, List<Dictionary<string, object?>>> OutputAsDictionary()
         {
-            Dictionary<string, Dictionary<int, Dictionary<string, object?>>> result = new();
+            Dictionary<string, List<Dictionary<string, object?>>> result = new();
 
-            Dictionary<int, Dictionary<string, object?>> dict = new();
-            foreach (var solution in Solutions.Values)
+            List<Dictionary<string, object?>> list = new();
+            if (BestSolution != null)
             {
                 Dictionary<string, object?> data = new()
                 {
+                    { nameof(BestSolution.Id), BestSolution.Id },
+                    { nameof(BestSolution.MaxCycleTime), BestSolution.MaxCycleTime },
+                    { nameof(BestSolution.ExecutionTimeMs), BestSolution.ExecutionTimeMs },
+                    { nameof(BestSolution.Feasible), BestSolution.Feasible },
+                    { nameof(BestSolution.WorkstationsCicleTimes), BestSolution.WorkstationsCicleTimes },
+                    { nameof(BestSolution.AssignedWorkers), BestSolution.AssignedWorkers },
+                    { nameof(BestSolution.GraphDirection), BestSolution.GraphDirection.ToString() },
+                    { nameof(BestSolution.WorkerRuleCriteria), BestSolution.WorkerRuleCriteria.ToString() },
+                    { nameof(BestSolution.TaskRuleCriteria), BestSolution.TaskRuleCriteria.ToString() },
+                    { nameof(BestSolution.TaskRuleSecondaryCriteria), BestSolution.TaskRuleSecondaryCriteria.ToString() }
+                };
+                list.Add(data);
+            }
+                  
+            foreach (var solution in Solutions.Values)
+            {
+                if (solution == BestSolution) continue;
+
+                Dictionary<string, object?> data = new()
+                {
+                    { nameof(solution.Id), solution.Id },
                     { nameof(solution.MaxCycleTime), solution.MaxCycleTime },
                     { nameof(solution.ExecutionTimeMs), solution.ExecutionTimeMs },
                     { nameof(solution.Feasible), solution.Feasible },
@@ -211,9 +244,9 @@ namespace ALWABP.Domain.ALWABP
                     { nameof(solution.TaskRuleCriteria), solution.TaskRuleCriteria.ToString() },
                     { nameof(solution.TaskRuleSecondaryCriteria), solution.TaskRuleSecondaryCriteria.ToString() }
                 };
-                dict.Add(solution.Id, data);
+                list.Add(data);
             }
-            result.Add(Name, dict);
+            result.Add(Name, list);
             
             return result;
         }

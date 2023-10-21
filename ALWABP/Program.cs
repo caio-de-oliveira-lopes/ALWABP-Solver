@@ -10,17 +10,18 @@ namespace ALWABP
         static void Main(string[] args)
         {
             string inputFileName;
+            /*
             if (args.Length > 0)
                 inputFileName = args[0];
             else
             {
                 Console.WriteLine($"No Input File Name Was Informed.{Warning}");
                 return;
-            }
+            }*/
 
             string inputFileDirectory;
-            if (args.Length > 1)
-                inputFileDirectory = args[1];
+            if (args.Length > 0)
+                inputFileDirectory = args[0];
             else
             {
                 Console.WriteLine($"No Input File Path Was Informed.{Warning}");
@@ -28,49 +29,55 @@ namespace ALWABP
             }
 
             string outputFilePath;
-            if (args.Length > 2)
-                outputFilePath = args[2];
+            if (args.Length > 1)
+                outputFilePath = args[1];
             else
                 outputFilePath = Directory.GetCurrentDirectory();
 
             if (!Directory.Exists(outputFilePath))
                 Directory.CreateDirectory(outputFilePath);
 
-            ALWABPInstance? instance = Reader.ReadInputFile<ALWABPInstance>(new(inputFileName, inputFileDirectory, outputFilePath));
-
-            if (instance is null)
+            foreach (var file in Directory.GetFiles(inputFileDirectory).OrderBy(x => x).ToList())
             {
-                Console.WriteLine($"Input Reading Error!");
-                return;
-            }
+                inputFileName = file.Split(Path.DirectorySeparatorChar).Last();
+                ALWABPInstance? instance = Reader.ReadInputFile<ALWABPInstance>(new(inputFileName, inputFileDirectory, outputFilePath));
 
-            GRASP grasp = new();
-            ALWABPSolution solution;
-
-            foreach (Instance.GraphDirection graphDirection in Enum.GetValues<Instance.GraphDirection>())
-            {
-                instance.ComputeData(graphDirection);
-                foreach (WorkerPriorityRule.RuleCriteria workerRuleCriteria in Enum.GetValues<WorkerPriorityRule.RuleCriteria>())
+                if (instance is null)
                 {
-                    if (workerRuleCriteria == WorkerPriorityRule.RuleCriteria.MinBWA) continue;
-
-                    foreach (TaskPriorityRule.RuleCriteria ruleCriteria in Enum.GetValues<TaskPriorityRule.RuleCriteria>())
-                    {
-                        foreach (TaskPriorityRule.RuleSecondaryCriteria secondayCriteria in TaskPriorityRule.GetSecondaryCriterias(ruleCriteria))
-                        {
-                            solution = grasp.Construct(instance, graphDirection, workerRuleCriteria, ruleCriteria, secondayCriteria);
-                            if (solution.IsFeasible())
-                                instance.AddSolution(solution);
-                            //break;
-                        }
-                        //break;
-                    }
-                    //break;
+                    Console.WriteLine($"Input Reading Error!");
+                    return;
                 }
-                //break;
-            }
 
-            Writer.WriteOutputFile(instance);
+                if (File.Exists(instance.Manager.GetFullOutputPath()))
+                {
+                    Console.WriteLine($"Skiped {inputFileName}!");
+                    continue;
+                }
+
+                GRASP grasp = new();
+                ALWABPSolution solution;
+
+                foreach (Instance.GraphDirection graphDirection in Enum.GetValues<Instance.GraphDirection>())
+                {
+                    instance.ComputeData(graphDirection);
+                    foreach (WorkerPriorityRule.RuleCriteria workerRuleCriteria in Enum.GetValues<WorkerPriorityRule.RuleCriteria>())
+                    {
+                        foreach (TaskPriorityRule.RuleCriteria ruleCriteria in Enum.GetValues<TaskPriorityRule.RuleCriteria>())
+                        {
+                            foreach (TaskPriorityRule.RuleSecondaryCriteria secondayCriteria in TaskPriorityRule.GetSecondaryCriterias(ruleCriteria))
+                            {
+                                solution = grasp.Construct(instance, graphDirection, workerRuleCriteria, ruleCriteria, secondayCriteria);
+                                if (solution.IsFeasible())
+                                    instance.AddSolution(solution);
+                            }
+                        }
+                    }
+                }
+
+                Writer.WriteOutputFile(instance);
+                // For now, only one execution
+                break;
+            }
         }
     }
 }

@@ -26,5 +26,10 @@ namespace ALWABP.Domain.ALWABP
             TaskRuleCriteria = ruleCriteria;
             TaskRuleSecondaryCriteria = ruleSecondaryCriteria;
         }
+
+        public int GetIdleTime()
+        {
+            return WorkstationsCicleTimes.Values.Max() - WorkstationsCicleTimes.Values.Min();
+        }
     }
 }

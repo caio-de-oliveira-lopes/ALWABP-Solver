@@ -64,7 +64,7 @@ namespace ALWABP.Domain.ALWABP
                 if (worker == null) break;
 
                 List<int> availableTasks = CurrentInstance.GetAssignableTasks(worker.Value, unassignedTasks);
-                int[]? orderedUnassignedTasks = TaskPriorityRule.Apply(CurrentInstance, availableTasks, ruleCriteria, ruleSecondaryCriteria, worker);
+                int[]? orderedUnassignedTasks = TaskPriorityRule.Apply(CurrentInstance, availableTasks, worker.Value, ruleCriteria, ruleSecondaryCriteria);
 
                 if (orderedUnassignedTasks == null) continue;
 

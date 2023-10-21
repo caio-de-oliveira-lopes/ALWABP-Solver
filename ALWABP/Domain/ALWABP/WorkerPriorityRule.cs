@@ -13,16 +13,18 @@
         {
             // Rule 1
             if (ruleCriteria == RuleCriteria.MaxTasks)
-                return unassignedWorkers.OrderByDescending(x => instance.GetMaxTasks(x, unassignedTasks)).FirstOrDefault();
+                return unassignedWorkers.OrderByDescending(x => instance.GetMaxTasks(x, unassignedTasks)).ThenBy(x => instance.GetMinRLB(x, unassignedWorkers.ToList(), unassignedTasks)).ThenBy(x => x).FirstOrDefault();
 
             // Rule 2
-            //if (ruleCriteria == RuleCriteria.MinBWA)
-                //return unassignedWorkers.OrderBy(x => instance.GetMinBWA(x, unassignedWorkers, unassignedTasks)).FirstOrDefault();
-
+            if (ruleCriteria == RuleCriteria.MinBWA)
+            {
+                var minBWA = instance.GetMinBWA(unassignedWorkers, unassignedTasks);
+                return unassignedWorkers.OrderBy(x => minBWA.IndexOf(x)).ThenBy(x => instance.GetMinRLB(x, unassignedWorkers.ToList(), unassignedTasks)).ThenBy(x => x).FirstOrDefault();
+            }
 
             // Rule 3
             if (ruleCriteria == RuleCriteria.MinRLB)
-                return unassignedWorkers.OrderBy(x => instance.GetMinRLB(x, unassignedWorkers.ToList(), unassignedTasks)).FirstOrDefault();
+                return unassignedWorkers.OrderBy(x => instance.GetMinRLB(x, unassignedWorkers.ToList(), unassignedTasks)).ThenByDescending(x => instance.GetMaxTasks(x, unassignedTasks)).ThenBy(x => x).FirstOrDefault();
 
             return null;
         }
