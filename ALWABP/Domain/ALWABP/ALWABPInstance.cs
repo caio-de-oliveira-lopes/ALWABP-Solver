@@ -1,4 +1,5 @@
 ﻿using ALWABP.Domain.Base;
+using ALWABP.Utils;
 
 namespace ALWABP.Domain.ALWABP
 {
@@ -157,7 +158,7 @@ namespace ALWABP.Domain.ALWABP
             return count;
         }
 
-        public List<int> GetMinBWA(List<int> unassignedWorkers, List<int>? unassignedTasks = null)
+        public IOrderedEnumerable<int> GetMinBWA(List<int> unassignedWorkers, List<int>? unassignedTasks = null)
         {
             unassignedTasks ??= GetTasksList();
             Dictionary<int, int> workerTimeMap = new();
@@ -172,7 +173,7 @@ namespace ALWABP.Domain.ALWABP
                 workerTimeMap[fastestWorker] += taskTime;
             }
 
-            return unassignedWorkers.OrderBy(x => workerTimeMap[x]).ToList();
+            return unassignedWorkers.OrderBy(x => workerTimeMap[x]);
         }
 
         public int GetMinRLB(int worker, List<int> unassignedWorkers, List<int>? unassignedTasks = null)
@@ -218,6 +219,7 @@ namespace ALWABP.Domain.ALWABP
                     { nameof(BestSolution.ExecutionTimeMs), BestSolution.ExecutionTimeMs },
                     { nameof(BestSolution.Feasible), BestSolution.Feasible },
                     { nameof(BestSolution.WorkstationsCicleTimes), BestSolution.WorkstationsCicleTimes },
+                    { nameof(BestSolution.WorkerTasks), Util.ToIntStringDict(BestSolution.WorkerTasks) },
                     { nameof(BestSolution.AssignedWorkers), BestSolution.AssignedWorkers },
                     { nameof(BestSolution.GraphDirection), BestSolution.GraphDirection.ToString() },
                     { nameof(BestSolution.WorkerRuleCriteria), BestSolution.WorkerRuleCriteria.ToString() },
@@ -238,6 +240,7 @@ namespace ALWABP.Domain.ALWABP
                     { nameof(solution.ExecutionTimeMs), solution.ExecutionTimeMs },
                     { nameof(solution.Feasible), solution.Feasible },
                     { nameof(solution.WorkstationsCicleTimes), solution.WorkstationsCicleTimes },
+                    { nameof(solution.WorkerTasks), Util.ToIntStringDict(solution.WorkerTasks) },
                     { nameof(solution.AssignedWorkers), solution.AssignedWorkers },
                     { nameof(solution.GraphDirection), solution.GraphDirection.ToString() },
                     { nameof(solution.WorkerRuleCriteria), solution.WorkerRuleCriteria.ToString() },

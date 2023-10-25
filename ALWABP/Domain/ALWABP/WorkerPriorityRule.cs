@@ -17,10 +17,7 @@
 
             // Rule 2
             if (ruleCriteria == RuleCriteria.MinBWA)
-            {
-                var minBWA = instance.GetMinBWA(unassignedWorkers, unassignedTasks);
-                return unassignedWorkers.OrderBy(x => minBWA.IndexOf(x)).ThenBy(x => instance.GetMinRLB(x, unassignedWorkers.ToList(), unassignedTasks)).ThenBy(x => x).FirstOrDefault();
-            }
+                return instance.GetMinBWA(unassignedWorkers, unassignedTasks).ThenBy(x => instance.GetMinRLB(x, unassignedWorkers.ToList(), unassignedTasks)).ThenBy(x => x).FirstOrDefault();
 
             // Rule 3
             if (ruleCriteria == RuleCriteria.MinRLB)
