@@ -8,7 +8,7 @@ Moreira, M.C.O., Ritt, M., Costa, A.M. et al. Simple heuristics for the assembly
 J Heuristics 18, 505–524 (2012). https://doi.org/10.1007/s10732-012-9195-5</br>
 
 ### Motivação
-A razão para a implementação destes métodos deu-se pelo desenvolvimento do meu projeto de mestrado, que presente extender este trabalho de Moreira et al. (2012) e outros.
+A razão para a implementação destes métodos deu-se pelo desenvolvimento do meu projeto de mestrado, que pretende extender este trabalho de Moreira et al. (2012) e outros.
 
 ## 💻 Pré-requisitos
 
